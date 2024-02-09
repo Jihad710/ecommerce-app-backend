@@ -4,7 +4,7 @@ const { generateToken } = require("../config/jwtToken");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const { generateRefreshToken } = require("../config/refreshtoken");
 const jwt = require("jsonwebtoken");
-
+const crypto = require("crypto");
 
 // create a user
 const createUser = asyncHandler(async (req, res) => {
@@ -34,7 +34,7 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      maxAge: 72* 60* 60* 1000,
+      maxAge: 72 * 60 * 60 * 1000,
     });
     res.json({
       _id: findUser?._id,
@@ -50,11 +50,25 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
 });
 
 // handle Refresh Token
-const handleRefreshToken = asyncHandler(async(req,res)=>{
-const cookie = req.cookies;
-console.log(cookie)
+const handleRefreshToken = asyncHandler(async (req, res) => {
+  const cookie = req.cookies;
+  if (!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies");
+  const refreshToken = cookie.refreshToken;
+  const user = await User.findOne({ refreshToken });
+  if (!user) throw new Error(" No Refresh token present in db or not matched");
+  jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+    if (err || user.id !== decoded.id) {
+      throw new Error("There is something wrong with refresh token");
+    }
+    const accessToken = generateToken(user?._id);
+    res.json({ accessToken });
+  });
+});
 
-if (!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies");
+// logout functionality
+const logout = asyncHandler(async (req, res) => {
+  const cookie = req.cookies;
+  if (!cookie?.refreshToken) throw new Error("No Refresh Token in Cookies");
   const refreshToken = cookie.refreshToken;
   const user = await User.findOne({ refreshToken });
   if (!user) {
@@ -182,6 +196,22 @@ const unblockUser = asyncHandler(async (req, res) => {
   }
 });
 
+// update password
+const updatePassword = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  const  {password}  = req.body;
+  validateMongoDbId(_id);
+  const user = await User.findById(_id);
+  if (password) {
+    user.password = password;
+    const updatedPassword = await user.save();
+    res.json(updatedPassword);
+    
+  } else {
+    res.json(user);
+  }
+});
+
 module.exports = {
   createUser,
   loginUserCtrl,
@@ -191,5 +221,7 @@ module.exports = {
   updatedUser,
   blockUser,
   unblockUser,
-  handleRefreshToken
+  handleRefreshToken,
+  logout,
+  updatePassword,
 };
