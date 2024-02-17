@@ -459,24 +459,20 @@ const createOrder = asyncHandler(async (req, res) => {
   }
 });
 
-// Get Orders
 const getOrders = asyncHandler(async (req, res) => {
   const { _id } = req.user;
-  validateMongoDbId( _id);
+  validateMongoDbId(_id);
   try {
     const userorders = await Order.findOne({ orderby: _id })
-    .populate("products.product")
-    .populate("orderby")
-    .exec();
-     
+      .populate("products.product")
+      .populate("orderby")
+      .exec();
     res.json(userorders);
   } catch (error) {
     throw new Error(error);
   }
 });
 
-
-// Get All order
 const getAllOrders = asyncHandler(async (req, res) => {
   try {
     const alluserorders = await Order.find()
@@ -489,20 +485,20 @@ const getAllOrders = asyncHandler(async (req, res) => {
   }
 });
 
-// // Get Order By id
-// const getOrderByUserId = asyncHandler(async (req, res) => {
-//   const { id } = req.params;
-//   validateMongoDbId(id);
-//   try {
-//     const userorders = await Order.findOne({ orderby: id })
-//       .populate("products.product")
-//       .populate("orderby")
-//       .exec();
-//     res.json(userorders);
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// });
+const getOrderByUserId = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongoDbId(id);
+  try {
+    const userorders = await Order.findOne({ orderby: id })
+      .populate("products.product")
+      .populate("orderby")
+      .exec();
+    res.json(userorders);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 
 // update Order Status
 const updateOrderStatus = asyncHandler(async (req, res) => {
@@ -550,7 +546,9 @@ module.exports = {
   applyCoupon,
   createOrder,
   getOrders,
-  updateOrderStatus,
   getAllOrders,
+  updateOrderStatus,
+  getOrderByUserId,
+
 
 };

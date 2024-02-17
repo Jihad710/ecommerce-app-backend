@@ -24,7 +24,10 @@ const {
   createOrder,
   getOrders,
   updateOrderStatus,
-  getAllOrders
+  getAllOrders,
+
+
+
 } = require("../controller/userCtrl");
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
 const { reset } = require("nodemon");
@@ -32,7 +35,6 @@ const { reset } = require("nodemon");
 router.post("/register", createUser);
 router.post("/forgot-password-token", forgotPasswordToken);
 router.put("/reset-password/:token", resetPassword);
-
 router.put("/password",authMiddleware, updatePassword);
 router.post("/login", loginUserCtrl);
 router.post("/admin-login", loginAdmin);
@@ -40,8 +42,10 @@ router.post("/cart", authMiddleware, userCart);
 router.post('/cart/applycoupon', authMiddleware, applyCoupon);
 router.post("/cart/cash-order", authMiddleware, createOrder);
 router.get("/all-users", getallUser);
-router.get("/get-orders", authMiddleware,getOrders);
+router.get("/get-orders", authMiddleware, getOrders);
 router.get("/getallorders", authMiddleware, isAdmin, getAllOrders);
+router.post("/getorderbyuser/:id", authMiddleware, isAdmin, getAllOrders);
+
 router.get("/refresh", handleRefreshToken);
 router.get("logout", logout);
 router.get("/wishlist", authMiddleware, getWishlist);
